@@ -1,0 +1,257 @@
+{% extends 'landing/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-md-5 col-sm-6">
+            <a href="{% url 'post-list' %}" class="btn btn-light">Back To Feed</a>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <!-- Button group to toggle between forms -->
+        <div class="btn-group d-flex justify-content-center" role="group" aria-label="Create Objects">
+            <!-- Event Button -->
+            <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#event" aria-expanded="false" aria-controls="event">
+                Event
+            </button>
+            <!-- Post Button -->
+            <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#post" aria-expanded="false" aria-controls="post">
+                Post
+            </button>
+            <!-- News Button (visible to staff only) -->
+            <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#news" aria-expanded="false" aria-controls="news">
+                News
+            </button>
+        </div>
+
+        <!-- Form Panels -->
+        <div class="mt-5">
+            <!-- Event Form Panel -->
+            <div class="collapse {% if active_form == 'event' %}show{% endif %}" id="event" data-bs-parent=".container">
+                <div class="row justify-content-center mt-3">
+                    <div class="col-md-5 col-sm-12">
+                        {% if event_tag %}
+                        <h3>Explore #{{ event_tag.name }} events</h3>
+                        <p class="mb-3">Most recent events tagged with {{ event_tag.name }}</p>
+                        {% else %}
+                        <h3>Explore Events</h3>
+                        <p class="mb-3">Explore tags to find new events</p>
+                        {% endif %}
+
+                        <form method="POST" class="mb-5">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="event">
+                            {{ explore_form | crispy }}
+                        </form>
+                    </div>
+                </div>
+
+                {% for event in events %}
+                <div class="row justify-content-center mt-3">
+                    <div class="col-md-5 col-sm-12 border-bottom position-relative">
+                        <div>
+                            <a href="{% url 'profile' event.organizer.profile.pk %}">
+                                <img class="round-circle post-img" height="30" width="30" src="{{ event.organizer.profile.picture.url }}" />
+                            </a>
+                            <p class="post-text">
+                                <a class="text-primary post-link" href="{% url 'profile' event.organizer.profile.pk %}">@{{ event.organizer }}</a> {{ event.created_on }}
+                                <span><i class="far fa-share-square share-btn"></i></span>
+                            </p>
+                        </div>
+
+
+                        <div class="shared-post position-relative pt-3">
+
+                            <div class="row">
+                                <div class="col-md-4 col-xs-12">
+                                    <img src="{{ event.image.url }}" class="post-image" />
+                                </div>
+                            </div>
+
+                            <div class="body">
+								{% if event.description|length > 100 %}
+                                <p>{{ event.description|slice:'100' }}...</p>
+								{% else %}
+								<p>{{ event.description }}</p>
+								{% endif %}
+                            </div>
+                            <a href="{% url 'event-detail' event.pk %}" class="stretched-link"></a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Post Form Panel (default shown) -->
+            <div class="collapse {% if active_form == 'post' %}show{% endif %}" id="post" data-bs-parent=".container">
+                <div class="row justify-content-center mt-3">
+                    <div class="col-md-5 col-sm-12">
+                        {% if post_tag %}
+                        <h3>Explore #{{ post_tag.name }} posts</h3>
+                        <p class="mb-3">Most recent posts tagged with {{ post_tag.name }}</p>
+                        {% else %}
+                        <h3>Explore posts</h3>
+                        <p class="mb-3">Explore tags to find new posts</p>
+                        {% endif %}
+
+                        <form method="POST" class="mb-5">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="post">
+                            {{ explore_form | crispy }}
+                        </form>
+                    </div>
+                </div>
+
+                {% for post in posts %}
+                <div class="row justify-content-center mt-3">
+                    <div class="col-md-5 col-sm-12 border-bottom position-relative">
+                        {% if post.shared_user %}
+                        <div>
+                            <a href="{% url 'profile' post.shared_user.profile.pk %}">
+                                <img class="round-circle post-img" height="30" width="30" src="{{ post.shared_user.profile.picture.url }}" />
+                            </a>
+                            <p class="post-text">
+                                <a class="text-primary post-link" href="{% url 'profile' post.shared_user.profile.pk %}">@{{ post.shared_user }}</a> shared a post on {{ post.shared_on }}
+                            </p>
+                        </div>
+                        {% else %}
+                        <div>
+                            <a href="{% url 'profile' post.author.profile.pk %}">
+                                <img class="round-circle post-img" height="30" width="30" src="{{ post.author.profile.picture.url }}" />
+                            </a>
+                            <p class="post-text">
+                                <a class="text-primary post-link" href="{% url 'profile' post.author.profile.pk %}">@{{ post.author }}</a> {{ post.created_on }}
+                                <span onclick="shareToggle('{{ post.pk }}')"><i class="far fa-share-square share-btn"></i></span>
+                            </p>
+                        </div>
+                        {% endif %}
+                        <form method="POST" action="{% url 'share-post' post.pk %}" class="d-none" id="{{ post.pk }}">
+                            {% csrf_token %}
+                            {{ shareform | crispy }}
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-success mt-3">share the post</button>
+                            </div>
+                        </form>
+                        {% if post.shared_body %}
+                        <div class="position-relative border-bottom mb-3 body">
+							{% if post.share_body|length > 100 %}
+                            <p>{{ post.shared_body|slice:'100' }}...</p>
+							{% else %}
+							<p>{{ post.shared_body }}</p>
+							{% endif %}
+                        </div>
+                        <div class="shared-post">
+                            <a href="{% url 'profile' post.author.profile.pk %}">
+                                <img class="round-circle post-img" height="30" width="30" src="{{ post.author.profile.picture.url }}" />
+                            </a>
+                            <p class="post-text">
+                                <a class="text-primary post-link" href="{% url 'profile' post.author.profile.pk %}">@{{ post.author }}</a> {{ post.created_on }}
+                            </p>
+                        </div>
+                        {% endif %}
+                        <div class="shared-post position-relative pt-3">
+                            
+                            <div class="row">
+                                
+                                <div class="col-md-4 col-xs-12">
+                                    <img src="{{ img.image.url }}" class="post-image" />
+                                </div>
+                                
+                            </div>
+                            
+                            <div class="body">
+								{% if post.body|length > 100 %}
+                                <p>{{ post.body|slice:'100' }}...</p>
+								{% else %}
+								<p>{{ post.body }}</p>
+								{% endif %}
+                            </div>
+                            <a href="{% url 'post-detail' post.pk %}" class="stretched-link"></a>
+                        </div>
+
+                        <div class="d-flex flex-row">
+                            <form method="POST" action="{% url 'like' post.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <button class="remove-default-btn" type="submit">
+                                    <i class="far fa-thumbs-up"> <span>{{ post.likes.all.count }}</span></i>
+                                </button>
+                            </form>
+
+                            <form method="POST" action="{% url 'dislike' post.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <button class="remove-default-btn" type="submit">
+                                    <i class="far fa-thumbs-down"> <span>{{ post.dislikes.all.count }}</span></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- News Form Panel -->
+            <div class="collapse {% if active_form == 'news' %}show{% endif %}" id="news" data-bs-parent=".container">
+                <div class="row justify-content-center mt-3">
+                    <div class="col-md-5 col-sm-12">
+                        {% if news_tag %}
+                        <h3>Explore #{{ news_tag.name }} news</h3>
+                        <p class="mb-3">Most recent news tagged with {{ news_tag.name }}</p>
+                        {% else %}
+                        <h3>Explore News</h3>
+                        <p class="mb-3">Explore tags to find new news</p>
+                        {% endif %}
+
+                        <form method="POST" class="mb-5">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="news">
+                            {{ explore_form | crispy }}
+                        </form>
+                    </div>
+                </div>
+
+                {% for news_item in news %}
+                <div class="row justify-content-center mt-3">
+                    <div class="col-md-5 col-sm-12 border-bottom position-relative">
+                        <div>
+                            <a href="{% url 'profile' news_item.author.profile.pk %}">
+                                <img class="round-circle post-img" height="30" width="30" src="{{ news_item.author.profile.picture.url }}" />
+                            </a>
+                            <p class="post-text">
+                                <a class="text-primary post-link" href="{% url 'profile' news_item.author.profile.pk %}">@{{ news_item.author }}</a> {{ news_item.created_on }}
+                                <span><i class="far fa-share-square share-btn"></i></span>
+                            </p>
+                        </div>
+
+                        <form method="POST" action=" " class="d-none" id="{{ news_item.pk }}">
+                            <!-- form content -->
+                        </form>
+
+                        <div class="shared-post position-relative pt-3">
+                            <div class="row">
+                                <div class="col-md-4 col-xs-12">
+                                    <img src="{{ news_item.image.url }}" class="post-image" />
+                                </div>
+                            </div>
+                            <div class="body">
+								{% if news_item.body|length > 100 %}
+                                <p>{{ news_item.body|slice:"100" }}...</p>
+								{% else %}
+								<p>{{ news_item.body }}</p>
+								{% endif %}
+                            </div>
+                            <a href="{% url 'news-detail' news_item.pk %}" class="stretched-link"></a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

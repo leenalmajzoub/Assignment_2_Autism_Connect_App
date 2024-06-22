@@ -1,0 +1,87 @@
+{% extends 'landing/base.html' %}
+{% load crispy_forms_tags %} 
+
+{% block content %}
+<div class="container">
+  <!-- Back to Feed Button -->
+  <div class="row mt-5">
+    <div class="col-md-5 col-sm-6">
+      <a href="{% url 'post-list' %}" class="btn btn-light">Back To Feed</a>
+    </div>
+  </div>
+
+  <div style="height:20px"></div>
+
+  <!-- Events Headline -->
+  <div class="row justify-content-center mt-3">
+    <div class="col-md-12 col-sm-10 border-bottom position-relative">
+      <h4>Events for you</h4>
+    </div>
+  </div>
+
+  <!-- List All Events -->
+  <div class="container mt-5">
+    {% for event in event_list %}
+      <!-- Event Container -->
+      <div class="justify-content-center mt-3 shadow bg-white rounded" style="margin-right: 10px; border: 2px solid lightgrey; width: 800px; padding: 10px;">
+        <a href="{% url 'event-detail' event.pk%}"class="text-decoration-none"><div class="row">
+          {% if event.image %}    
+            <!-- Event Image Column -->
+            <div class="col-md-4">
+              <img src="{{ event.image.url }}" class="event-image img-fluid" alt="Event Image">
+            </div>
+          {% endif %}
+          <!-- Event Details Column -->
+          <div class="col-md-2"></div>
+          <div class="col-md-6">
+            <!-- Event Title -->
+            <h2 style="color: black; font-size: 20px; margin-bottom: 5px;"><strong>{{ event.title }}</strong></h2>
+            <!-- Event Time -->
+            <div class="event-time">
+              <p style="color: black; font-size: 16px; margin-bottom: 5px;">{{ event.start_time|date:"l d.m.Y" }}</p>
+              <p style="color: black; font-size: 16px; margin-bottom: 15px;">from {{ event.start_time|time:"P" }} till {{ event.end_time|time:"P" }}</p>
+            </div>
+            <!-- Event Description -->
+            <p style="color: black; margin-bottom: 30px;">{{ event.description|slice:"100" }}...</p>
+            <!-- Attendees Count -->
+            <p style="color: black; margin-bottom: 10px;">Attending: {{ event.number_of_attendees }}/{{ event.attendees_allowed }}</p>
+            <!-- Event Location -->
+            <p style="color: black;">Location: {{ event.place }}</p> 
+          </div>
+        </div></a>
+        <!-- Join/Share Buttons Row -->
+        <div class="row mt-3">
+          <div class="col-md-6"><b>Organizer:</b> <a href="{% url 'profile' event.organizer.pk %}">{{event.organizer}}</a></div>
+          <!-- Join/Unjoin Column -->
+          <div class="col-md-3">
+            {% if event.can_join %}
+              {% if request.user not in event.attendees.all %}
+                <!-- Join Event Form -->
+                <form method="POST" action="{% url 'join-event' event.pk %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.path }}">
+                  <button type="submit" class="btn btn-success">
+                    Join Event
+                  </button>
+                </form>
+              {% endif %}
+            {% endif %}
+              {% if request.user in event.attendees.all %}
+                <!-- Unjoin Event Form -->
+                <form method="POST" action="{% url 'unjoin-event' event.pk %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.path }}">
+                  <button type="submit" class="btn btn-danger">
+                    Unjoin Event
+                  </button>
+                </form>
+              {% endif %}
+          </div>
+
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+<div style="height:100px"></div>
+{% endblock content %}

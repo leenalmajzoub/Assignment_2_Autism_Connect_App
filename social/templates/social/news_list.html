@@ -1,0 +1,67 @@
+{% extends 'landing/base.html' %}
+{% load crispy_forms_tags %} 
+
+{% block content %}
+<div class="container">
+  <!-- Back to Feed Button -->
+  <div class="row mt-5">
+    <div class="col-md-5 col-sm-6">
+      <!-- Link to return to the post list -->
+      <a href="{% url 'post-list' %}" class="btn btn-light">Back To Feed</a>
+    </div>
+  </div>
+
+  <div style="height:20px"></div>
+
+  <!-- News Headline -->
+  <div class="row justify-content-center mt-3">
+    <div class="col-md-12 col-sm-10 border-bottom position-relative">
+      <!-- Section title for the news feed -->
+      <h4>News for you</h4>
+    </div>
+  </div>
+
+  <!-- List All News -->
+  <div class="container mt-5">
+    {% for news in news_list %}
+      <!-- News Container -->
+      <div class="justify-content-center mt-3 shadow bg-white rounded" style="margin-right: 10px; border: 2px solid lightgrey; width: 800px; padding: 10px;">
+        <!-- Link to individual news post -->
+        <a href="{% url 'news-detail' news.pk %} " class="text-decoration-none">
+          <div class="row">
+            {% if news.image %}    
+              <!-- News Image Column -->
+              <div class="col-md-4">
+                <img src="{{ news.image.url }}" class="news-image img-fluid" alt="News Image">
+              </div>
+            {% endif %}
+            <!-- Empty column for spacing -->
+            <div class="col-md-2"></div>
+            <!-- News Details Column -->
+            <div class="col-md-6">
+              <!-- News Title -->
+              <h2 style="color: black; font-size: 20px; margin-bottom: 5px;"><strong>{{ news.title }}</strong></h2>
+              <!-- News Body Preview -->
+              <p style="color: black; margin-bottom: 30px;">{{ news.body|slice:"200" }}...</p>
+              <!-- News creation date -->
+              <div class="align-bottom d-table-cell">
+                <p style="color: black; font-size: 16px;">{{ news.created_on|date:"l d.m.Y" }}</p>
+              </div>
+            </div>
+          </div>
+        </a>
+        <div class="row mt-3">
+          <!-- News Author Information -->
+          <div class="col-md-6">
+            <b>Author:</b> 
+            <a href="{% url 'profile' news.author.pk %}">{{news.author}}</a>
+          </div>
+          
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+<!-- Spacer div to add some bottom margin -->
+<div style="height:100px"></div>
+{% endblock content %}

@@ -1,0 +1,286 @@
+        {% extends 'landing/base.html' %}
+        {% load crispy_forms_tags %}
+    
+        {% block content %}
+        <div class="container">
+            
+            <!-- Adding an Event/Post/News -->
+            <div class="container mt-5">
+                <!-- Button group to toggle between forms -->
+                <div class="btn-group d-flex justify-content-center" role="group" aria-label="Create Objects">
+                    <!-- Event Button -->
+                    <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#event" aria-expanded="false" aria-controls="event">
+                        Event
+                    </button>
+                    <!-- Post Button -->
+                    <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#post" aria-expanded="false" aria-controls="post">
+                        Post
+                    </button>
+                    <!-- News Button (visible to staff only) -->
+                    {% if request.user.is_staff %}
+                    <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#news" aria-expanded="false" aria-controls="news">
+                        News
+                    </button>
+                    {% endif %}
+                </div>
+    
+                <!-- Form Panels -->
+                <div class="mt-3">
+                    <!-- Event Form Panel -->
+                    <div class="collapse" id="event" data-bs-parent=".container">
+                        <div class="card card-body">
+                            <div class="row text-center mt-3">
+                                <h3>Host an Event!</h3>
+                            </div>
+                            <div class="row justify-content-center mt-3 mb-5">
+                                <div class="col-md-5 col-sm-12 border-bottom">
+                                    <form method="POST" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        {{ eventform|crispy }}
+                                        <input type="hidden" name="form_type" value="event">
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-success mt-3" type="submit">Submit!</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- Post Form Panel (default shown) -->
+                    <div class="collapse show" id="post" data-bs-parent=".container">
+                        <div class="card card-body">
+                            <div class="row text-center mt-3">
+                                <h3>Add a Post!</h3>
+                            </div>
+                            <div class="row justify-content-center mt-3 mb-5">
+                                <div class="col-md-5 col-sm-12 border-bottom">
+                                    <form method="POST" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        {{ postform|crispy }}
+                                        <input type="hidden" name="form_type" value="post">
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-success mt-3" type="submit">Submit!</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- News Form Panel -->
+                    <div class="collapse" id="news" data-bs-parent=".container">
+                        <div class="card card-body">
+                            <div class="row text-center mt-3">
+                                <h3>Add a News Article</h3>
+                            </div>
+                            <div class="row justify-content-center mt-3 mb-5">
+                                <div class="col-md-5 col-sm-12 border-bottom">
+                                    <form method="POST" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        {{ newsform|crispy }}
+                                        <input type="hidden" name="form_type" value="news">
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-success mt-3" type="submit">Add News!</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Popular Events Section -->
+            <div class="row justify-content-center mt-5">
+                <!-- Section Header -->
+                <div class="col-md-6 col-sm-6 border-bottom position-relative">
+                    <h4>Upcoming Events</h4>
+                </div>
+                <!-- "See all" link -->
+                <div class="col-md-6 col-sm-6 border-bottom position-relative text-end">
+                    <a href="{% url 'event-list' %}">See all</a>
+                </div>
+            </div>
+    
+            <div class="spacer" style="height:10px;"></div>
+    
+            <!-- Events List -->
+            <div class="row justify-content-center">
+                <div class="d-flex justify-content-center overflow-auto">
+                    {% for event in event_list|slice:":5" %}
+                    <!-- Event Card -->
+                    <a href="{% url 'event-detail' event.pk %}" class="text-decoration-none d-grid">
+                        <div class="event-card flex-shrink-0 m-2 p-3 shadow bg-white rounded" style="width: 230px; height:350px;">
+                            <div style='height:300px'>
+                            <!-- Event Image (if available) -->
+                            {% if event.image %}
+                            <div class="d-flex justify-content-center align-items-center">
+                                <img src="{{ event.image.url }}" class="event-image" width="220">
+                            </div>
+                            {% endif %}
+                            <!-- Event Details -->
+                            <p class="text-muted">{{ event.start_time }}</p>
+                            <p class="fw-bold text-dark">{{ event.title }}</p></div></a>
+                            <div class="align-self-end">
+                            <p class="text-dark">{{ event.place }}</p>
+                        </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+    
+            <div class="spacer" style="height:30px;"></div>
+    
+            <!-- Latest News Section -->
+            <div class="row justify-content-center mt-3">
+                <!-- Section Header -->
+                <div class="col-md-6 col-sm-6 border-bottom position-relative">
+                    <h4>Latest News</h4>
+                </div>
+                <!-- "See all" link -->
+                <div class="col-md-6 col-sm-6 border-bottom position-relative text-end">
+                    <a href="{% url 'news-list' %}">See all</a>
+                </div>
+                <div class="col-md-2 border-bottom position-relative"></div>
+            </div>
+    
+            <!-- News List -->
+            <div class="row justify-content-center mt-3">
+                <div class="d-flex justify-content-center overflow-auto">
+                    {% for news in news_list %}
+                    <!-- News Card -->
+                        <div class="news-card flex-shrink-0 m-2 p-3 border shadow bg-white rounded" style="width: 300px; height:470px;">
+                            <div style="height:415px;position: relative">
+                            <!-- News Image (if available) -->
+                            {% if news.image %}
+                            <div class="d-flex justify-content-center align-items-center">
+                                <img src="{{ news.image.url }}" class="news-image" width="270">
+                            </div>
+                            {% endif %}
+                            <!-- News Details -->
+                             <div>
+                               <p class="fw-bold text-dark">{{ news.title }}</p>
+                                <p class="body">{{ news.body|slice:":100" }}...</p> 
+                             </div>
+                            
+                            <a href="{% url 'news-detail' news.pk %}" class="stretched-link"></a></div>
+
+                            <div><p class="text-muted">{{ news.created_on }}</p></div>
+                        </div>
+
+                    {% endfor %}
+                </div>
+            </div>
+    
+            <div class="spacer" style="height:30px;"></div>
+    
+            <!-- Posts Section -->
+            <div class="row justify-content-center mt-3">
+                <!-- Section Header -->
+                <div class="col-md-6 col-sm-6 border-bottom position-relative">
+                    <h4>Posts</h4>
+                </div>
+                <div class="col-md-6 col-sm-6 border-bottom position-relative"></div>
+            </div>
+    
+            <!-- Posts List -->
+            <div class="container mt-5">
+                {% for post in post_list %}
+                <div class="row mt-3">
+                    <div class="col-md-6 col-sm-12 border-bottom position-relative" style="background-color: whitesmoke;">
+                        <!-- Post Header -->
+                        {% if post.shared_user %}
+                        <!-- Shared Post Header -->
+                        <div>
+                            <a href="{% url 'profile' post.shared_user.profile.pk %}">
+                                <img class="rounded-circle post-img" height="50" width="50" src="{{ post.shared_user.profile.picture.url }}">
+                            </a>
+                            <p class="post-text">
+                                <a class="text-primary post-link" href="{% url 'profile' post.shared_user.profile.pk %}">@{{ post.shared_user }}</a> shared a post on {{ post.shared_on }}
+                            </p>
+                        </div>
+                        {% else %}
+                        <!-- Original Post Header -->
+                        <div>
+                            <a href="{% url 'profile' post.author.profile.pk %}">
+                                <img class="rounded-circle post-img" height="50" width="50" src="{{ post.author.profile.picture.url }}">
+                            </a>
+                            <p class="post-text">
+                                <a class="text-primary post-link" href="{% url 'profile' post.author.profile.pk %}">@{{ post.author }}</a> {{ post.created_on }}
+                                <span onclick="shareToggle('{{ post.pk }}')"><i class="far fa-share-square share-btn"></i></span>
+                            </p>
+                        </div>
+                        {% endif %}
+    
+                        <!-- Share Form -->
+                        <form method="POST" action="{% url 'share-post' post.pk %}" class="d-none" id="{{ post.pk }}">
+                            {% csrf_token %}
+                            {{ shareform|crispy }}
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-success mt-3">Share the post</button>
+                            </div>
+                        </form>
+    
+                        {% if post.shared_body %}
+                        <!-- Shared Post Body -->
+                        <div class="position-relative border-bottom mb-3 body">
+                            <p>{{ post.shared_body }}</p>
+                        </div>
+                        <!-- Shared Post Information -->
+                        <div class="shared-post">
+                            <a href="{% url 'profile' post.author.profile.pk %}">
+                                <img class="rounded-circle post-img" height="50" width="50" src="{{ post.author.profile.picture.url }}">
+                            </a>
+                            <p class="post-text">
+                                <a class="text-primary post-link" href="{% url 'profile' post.author.profile.pk %}">@{{ post.author }}</a> {{ post.created_on }}
+                            </p>
+                        </div>
+                        {% endif %}
+    
+                        <!-- Post Images -->
+                        <div class="position-relative pt-3">
+                            {% if post.image.count > 0 %}
+                            <div class="row">
+                                {% for img in post.image.all %}
+                                <div class="col-md-4 col-xs-12">
+                                    <img src="{{ img.image.url }}" class="post-image">
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <!-- Post Body -->
+                            <div class="body">
+                                <p>{{ post.body }}</p>
+                            </div>
+                            <a href="{% url 'post-detail' post.pk %}" class="stretched-link"></a>
+                        </div>
+    
+                        <!-- Like and Dislike Buttons -->
+                        <div class="d-flex flex-row">
+                            <form method="POST" action="{% url 'like' post.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <button class="remove-default-btn" type="submit">
+                                    <i class="far fa-thumbs-up"></i> <span>{{ post.likes.all.count }}</span>
+                                </button>
+                            </form>
+    
+                            <form method="POST" action="{% url 'dislike' post.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <button class="remove-default-btn" type="submit">
+                                    <i class="far fa-thumbs-down"></i> <span>{{ post.dislikes.all.count }}</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+    
+            <div class="spacer" style="height:100px;"></div>
+    
+        </div>
+    
+        {% endblock content %}

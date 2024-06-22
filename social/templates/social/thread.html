@@ -1,0 +1,107 @@
+{% extends 'landing/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <!-- Card showing the thread's participant's username -->
+        <div class="card col-md-12 mt-5 p-3 shadow-sm">
+            {% if thread.receiver == request.user %}
+                <h5>@{{ thread.user }}</h5>
+            {% else %}
+                <h5>@{{ thread.receiver }}</h5>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Display a message if there are no messages in the thread -->
+    {% if not message_list %}
+    <div class="row my-5">
+        <div class="col-md-12">
+            <p class="empty-text">No Messages</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Loop through each message in the message list -->
+    {% for message in message_list %}
+    <div class="row">
+        <!-- Styling for sent messages -->
+        {% if message.sender_user == request.user %}
+        <div class="col-md-12 offset-6">
+            <!-- Display event details if the message is associated with an event -->
+            {% if message.event %}
+            <div class="event-details my-3 shadow bg-white" style="border-radius: 30px; padding: 10px 25px; width: 35%;">
+                <h6>Event: {{ message.event.title }}</h6>
+                <p>Starts: {{ message.event.start_time }}</p>
+                <p>Ends: {{ message.event.end_time }}</p>
+                <p>Place: {{ message.event.place }}</p>
+                <div class="event-description">
+                    
+                        {{ message.event.description }}
+                </div><a href="{% url 'event-detail' message.event.pk %}" class="stretched-link body"></a>
+            </div>
+            {% else %}
+            <!-- Display image if available -->
+            {% if message.image %}
+            <div>
+                <img src="{{ message.image.url }}" class="message-image" />
+            </div>
+            {% endif %}
+            <!-- Display message content -->
+            <div class="sent-message my-3" style="background-color: rgb(1, 196, 255); color: #fff; border-radius: 30px; padding: 10px 25px; width: 35%;">
+                <p>{{ message.body }}</p>
+                
+            </div>
+            {% endif %}
+        </div>
+        <!-- Styling for received messages -->
+        {% elif message.receiver_user == request.user %}
+        <div class="col-md-12 my-1">
+            <!-- Display event details if the message is associated with an event -->
+            {% if message.event %}
+            <div class="event-details my-2 shadow bg-white" style="border-radius: 30px; padding: 10px 25px; width: 35%;">
+                <h6>Event: {{ message.event.title }}</h6>
+                <p>Starts: {{ message.event.start_time }}</p>
+                <p>Ends: {{ message.event.end_time }}</p>
+                <p>Place: {{ message.event.place }}</p>
+                <div class="event-description">
+                    
+                        {{ message.event.description }}
+                </div><a href="{% url 'event-detail' message.event.pk %}" class="stretched-link body"></a>
+            </div>
+            {% else %}
+            <!-- Display image if available -->
+            {% if message.image %}
+            <div class="message-receiver-container ms-auto">
+                <img src="{{ message.image.url }}" class="message-image" />
+            </div>
+            {% endif %}
+            <!-- Display message content -->
+            <div class="received-message my-2" style="background-color: #f3f3f3; border-radius: 30px; padding: 10px 25px; width: 35%; color: black;">
+                <p>{{ message.body }}</p> 
+
+            {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <!-- Form to create a new message -->
+    <div class="row">
+        <div class="card col-md-12 p-3 shadow-sm">
+            <form method="POST" action="{% url 'create-message' thread.pk %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form | crispy }}
+
+                <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-light" type="submit">Send Message</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

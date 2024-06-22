@@ -1,0 +1,182 @@
+{% extends 'landing/base.html' %}
+{% load crispy_forms_tags %} 
+
+{% block content %}
+<div class="container">
+  <!-- Back to News Button -->
+  <div class="row mt-5">
+    <div class="col-md-5 col-sm-6">
+      <a href="{% url 'news-list' %}" class="btn btn-light">See more news</a>
+    </div>
+  </div>
+
+  <div style="height:15px"></div>
+
+  <!-- News Headline -->
+  <div class="row justify-content-center mt-3">
+    <div class="col-md-10 col-sm-10 border-bottom position-relative">
+      <h4>More details about the news</h4>
+    </div>
+  </div>
+
+  <!-- News Details -->
+  <div class="container mt-5" style="margin-left: 60px; margin-bottom: 60px;">
+      <!-- News Container -->
+      <div class="justify-content-center mt-3 shadow bg-white rounded" style="margin-right: 10px; border: 2px solid lightgrey; width: 800px; padding: 10px;">
+        <div class="row">
+            <!-- Empty column for spacing -->
+            <div class="col-md-1"></div>
+            {% if news.image %}    
+              <!-- News Image Column -->
+              <div class="col-md-10">
+                <img src="{{ news.image.url }}" class="news-image img-fluid" alt="News Image">
+              </div>
+            {% endif %}
+        </div>
+        <div class="row" style="margin-top: 20px;">
+            <!-- Empty column for spacing -->
+            <div class="col-md-1"></div>
+            <!-- News Details Column -->
+            <div class="col-md-10">
+              <!-- News Title -->
+              <h2 style="color: black; font-size: 20px; margin-bottom: 5px;"><strong>{{ news.title }}</strong>
+                <!--Edit News-->
+                {% if request.user.is_staff %}
+                <a href="{% url 'news-edit' news.pk %}" class="edit-color"><i class="far fa-edit"></i></a>
+                <a href="{% url 'news-delete' news.pk %}" class="edit-color"><i class="fas fa-trash"></i></a>
+                {% endif %}
+                </h2>
+              <!-- News Body Preview -->
+              <p style="color: black; margin-bottom: 30px;">{{ news.body }}</p>
+              <!-- News creation date -->
+              <div class="align-bottom d-table-cell">
+                <p style="color: black; font-size: 16px;">{{ news.created_on|date:"l d.m.Y" }}</p>
+              </div>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+          <!-- News Author Information -->
+           <!-- Empty column for spacing -->
+            <div class="col-md-1"></div>
+          <div class="col-md-5">
+            <b>Author:</b> 
+            <a href="{% url 'profile' news.author.pk %}">{{news.author}}</a>
+          </div>
+        </div>
+      </div>
+      
+      
+      
+  </div>
+
+  <!-- Comment form section -->
+  <div class="row mt-3 mb-3" style="padding-left: 80px;">
+    <h2>Comment</h2>
+  </div>
+  <div class="row mt-3 mb-5" style="padding-left: 80px;">
+    <div class="col-md-5 col-sm-12">
+        <form method="POST">
+            {% csrf_token %}
+            {{ form | crispy }}
+            <div class="d-grid gap-2">
+                <button class="btn btn-success mt-3">Submit!</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+    <!-- Comments section -->
+    {% for comment in comments %}
+        {% if comment.is_parent %}
+        <div class="row  mt-4 mb-5" style="padding-left: 80px;">
+            <div class="col-md-5 col-sm-12 border-bottom">
+                <p>
+                    <!-- Link to the comment author's profile with their picture -->
+                    <div>
+                        <a href="{% url 'profile' comment.author.profile.pk %}">
+                            <img class="round-circle post-img" height="30" width="30" src="{{ comment.author.profile.picture.url }}" />
+                        </a>
+                        <!-- Comment author and creation date -->
+                        <p class="post-text">
+                            <a class="text-primary post-link" href="{% url 'profile' comment.author.profile.pk %}">@{{ comment.author }}</a> {{ comment.created_on }}
+                        </p>
+                    </div>
+                    <!-- Delete button if the current user is the comment author -->
+                    {% if request.user == comment.author %}
+                        <a href="{% url 'newscomment-delete' news.pk comment.pk %}" class="edit-color"><i class="fas fa-trash"></i></a>
+                    {% endif %}
+                </p>
+                <!-- Comment content -->
+                <p>{{ comment.comment }}</p>
+                <!-- Like, Dislike, and Reply buttons for the comment -->
+                <div class="d-flex flex-row">
+                    <form method="POST" action="{% url 'newscomment-like' news.pk comment.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button class="remove-default-btn" type="submit">
+                            <i class="far fa-thumbs-up"> <span>{{ comment.likes.all.count }}</span></i>
+                        </button>
+                    </form>
+                    <form method="POST" action="{% url 'newscomment-dislike' news.pk comment.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button class="remove-default-btn" type="submit">
+                            <i class="far fa-thumbs-down"> <span>{{ comment.dislikes.all.count }}</span></i>
+                        </button>
+                    </form>
+                    <div>
+                        <button class="remove-default-btn"><i class="far fa-comment-dots" onclick="commentReplyToggle('{{ comment.pk }}')"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Reply form for the comment -->
+        <div class="row  mt-3 mb-5 d-none" id="{{ comment.pk }}" style="padding-left: 80px;">
+            <div class="col-md-5 col-sm-12">
+                <form method="POST" action="{% url 'newscomment-reply' news.pk comment.pk %}">
+                    {% csrf_token %}
+                    {{ form | crispy }}
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success mt-3">Submit!</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+        <!-- Display child comments -->
+        {% for child_comment in comment.children %}
+        <div class="row  mt-3 mb-5 child-comment" style="padding-left: 80px;">
+            <div class="col-md-5 col-sm-12 border-bottom">
+                <p>
+                    <!-- Link to the child comment author's profile with their picture -->
+                    <div>
+                        <a href="{% url 'profile' child_comment.author.profile.pk %}">
+                            <img class="round-circle post-img" height="30" width="30" src="{{ child_comment.author.profile.picture.url }}" />
+                        </a>
+                        <!-- Child comment author and creation date -->
+                        <p class="post-text">
+                            <a class="text-primary post-link" href="{% url 'profile' child_comment.author.profile.pk %}">@{{ child_comment.author }}</a> {{ child_comment.created_on }}
+                        </p>
+                    </div>
+                    <!-- Delete button if the current user is the child comment author -->
+                    {% if request.user == child_comment.author %}
+                        <a href="{% url 'newscomment-delete' news.pk child_comment.pk %}" class="edit-color"><i class="fas fa-trash"></i></a>
+                    {% endif %}
+                </p>
+                <!-- Child comment content -->
+                <p>{{ child_comment.comment }}</p>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+    {% endfor %}
+   
+      
+    
+
+  
+</div>
+{% endblock content %}
