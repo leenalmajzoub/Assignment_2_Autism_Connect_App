@@ -160,8 +160,8 @@
                             {% endif %}
                             <!-- News Details -->
                              <div>
-                               <p class="fw-bold text-dark">{{ news.title }}</p>
-                                <p class="body">{{ news.body|slice:":100" }}...</p> 
+                               <p class="fw-bold text-dark">{{ news.title|slice:"30" }}</p>
+                                <p class="body">{{ news.body|slice:":70" }}...</p> 
                              </div>
                             
                             <a href="{% url 'news-detail' news.pk %}" class="stretched-link"></a></div>
