@@ -3,4 +3,3 @@ django-crispy-forms>=1.9,<2.0
 crispy_bootstrap4
 django-allauth
 Pillow
-channels
