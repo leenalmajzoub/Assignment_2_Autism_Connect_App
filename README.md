@@ -11,7 +11,7 @@ This app was made by Leen Al Majzoub.
 5. Run "python manage.py runserver" to run the project.
 6. Give me a good grade.
 
-I have made 5 users, only one of them is admin.
+I have made 5 users, only two of them are admins.
 
 |Username           |Admin      |Password       |
 |-------------------|-----------|---------------|
