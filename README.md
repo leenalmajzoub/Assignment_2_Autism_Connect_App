@@ -1,6 +1,6 @@
 # Welcome to my Autism Connect App
 
-Congratulations, you got to my project for the second assignment which was made by love, in order to run the application probably and I get a good grade, please follow the following steps.
+Congratulations, you got to my project for the second assignment which was made by love, in order to run the application properly and I get a good grade, please follow the following steps.
 
 This app was made by Leen Al Majzoub. 
 
